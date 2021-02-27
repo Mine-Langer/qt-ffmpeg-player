@@ -13,12 +13,9 @@ public:
 
 
 private:
-	bool InitPlay();
-	bool OpenFile(const char* szInput);
 
 	static int WaitSdlThread(void *param);
 
-	void PlayThread();
 
 protected:
 	void resizeEvent(QResizeEvent *event);

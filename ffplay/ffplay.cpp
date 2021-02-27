@@ -14,74 +14,6 @@ ffplay::ffplay(QWidget *parent)
 	ui.labelVideoView->setLineWidth(5);
 
 	connect(ui.btnOpenFile, SIGNAL(clicked()), this, SLOT(OnBtnOpenFileClicked()));
-
-	InitPlay();
-}
-
-bool ffplay::InitPlay()
-{
-	SDL_Init(SDL_INIT_AUDIO | SDL_INIT_VIDEO | SDL_INIT_EVENTS);
-	m_pWindow = SDL_CreateWindowFrom((void*)ui.labelVideoView->winId());
-	if (m_pWindow == nullptr)
-		return false;
-
-	m_pRender = SDL_CreateRenderer(m_pWindow, -1, 0);
-	if (m_pRender == nullptr)
-		return false;
-
-	m_pTexture = SDL_CreateTexture(m_pRender, SDL_PIXELFORMAT_IYUV, SDL_TEXTUREACCESS_STREAMING, 
-		ui.labelVideoView->width(), ui.labelVideoView->height());
-	if (m_pTexture == nullptr)
-		return false;
-
-	return true;
-}
-
-bool ffplay::OpenFile(const char* szInput)
-{
-	m_pFormatCtx = avformat_alloc_context();
-	if (0 != avformat_open_input(&m_pFormatCtx, szInput, nullptr, nullptr))
-		return false;
-	
-	if (0 > avformat_find_stream_info(m_pFormatCtx, nullptr))
-		return false;
-
-	for (int i=0; i<m_pFormatCtx->nb_streams; i++)
-	{
-		if (m_pFormatCtx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO)
-			m_videoIndex = i;
-		else if (m_pFormatCtx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO)
-			m_audioIndex = i;
-	}
-	
-	m_pCodecCtx = avcodec_alloc_context3(nullptr);
-	if (m_pCodecCtx == nullptr)
-		return false;
-
-	avcodec_parameters_to_context(m_pCodecCtx, m_pFormatCtx->streams[m_videoIndex]->codecpar);
-	m_pCodec = avcodec_find_decoder(m_pCodecCtx->codec_id);
-	if (m_pCodec == nullptr)
-		return false;
-
-	if (0 > avcodec_open2(m_pCodecCtx, m_pCodec, nullptr))
-		return false;
-
-	m_pSrcFrame = av_frame_alloc();
-	m_pDstFrame = av_frame_alloc();
-
-	m_pSwsContext = sws_getContext(m_pCodecCtx->width, m_pCodecCtx->height, m_pCodecCtx->pix_fmt,
-		ui.labelVideoView->width(), ui.labelVideoView->height(), m_pCodecCtx->pix_fmt, 
-		SWS_FAST_BILINEAR, nullptr, nullptr, nullptr);
-	if (m_pSwsContext == nullptr)
-		return false;
-
-	m_pDstBuffer = (uint8_t*)av_malloc(av_image_get_buffer_size(m_pCodecCtx->pix_fmt, 
-		ui.labelVideoView->width(), ui.labelVideoView->height(), 1));
-
-	av_image_fill_arrays(m_pDstFrame->data, m_pDstFrame->linesize, m_pDstBuffer,
-		m_pCodecCtx->pix_fmt, ui.labelVideoView->width(), ui.labelVideoView->height(), 1);
-
-	return true;
 }
 
 int ffplay::WaitSdlThread(void *param)
@@ -97,51 +29,6 @@ int ffplay::WaitSdlThread(void *param)
 			pThis->m_bRun = false;
 	}
 	return 0;
-}
-
-void ffplay::PlayThread()
-{
-	while (m_bRun)
-	{
-		int iRet = av_read_frame(m_pFormatCtx, m_packet);
-		if (0 == iRet)
-		{
-			if (m_packet->stream_index == m_videoIndex)
-			{
-				if (0 > avcodec_send_packet(m_pCodecCtx, m_packet))
-					m_bRun = false;
-				else
-				{
-					while (iRet = avcodec_receive_frame(m_pCodecCtx, m_pSrcFrame), m_bRun)
-					{
-						if (iRet == AVERROR(EAGAIN) || iRet == AVERROR_EOF)
-							break;
-						else if (iRet < 0)
-							m_bRun = false;
-						else if (iRet == 0)
-						{
-							sws_scale(m_pSwsContext, m_pSrcFrame->data, m_pSrcFrame->linesize, 0,
-								m_pCodecCtx->height, m_pDstFrame->data, m_pDstFrame->linesize);
-
-							m_pDstFrame->pts = m_pSrcFrame->pts;
-							m_pDstFrame->best_effort_timestamp = m_pSrcFrame->best_effort_timestamp;
-
-							SDL_UpdateTexture(m_pTexture, nullptr, m_pDstFrame->data[0], m_pDstFrame->linesize[0]);
-							SDL_RenderClear(m_pRender);
-
-							SDL_RenderCopy(m_pRender, m_pTexture, nullptr, nullptr);
-							SDL_RenderPresent(m_pRender);
-							SDL_Delay(40);
-						}
-
-					}
-				}
-				av_packet_unref(m_packet);
-			}
-		}
-		else if (iRet == AVERROR_EOF)
-			m_bRun = false;
-	}
 }
 
 void ffplay::resizeEvent(QResizeEvent *event)
@@ -173,7 +60,7 @@ void ffplay::RescaleLayout(QWidget* pWndParent)
 void ffplay::OnBtnOpenFileClicked()
 {
 	QString szFilter;
-	szFilter.append(tr("Common media formats|*.avi;*.wmv;*.wmp;*.wm;*.asf;*.rm;*.ram;*.rmvb;*.ra;*.mpg;*.mpeg;*.mpe;*.m1v;*.m2v;*.mpv2;;"));
+	szFilter.append(tr("Common media formats(*.avi;*.wmv;*.wmp;*.wm;*.asf;*.rm;*.ram;*.rmvb;*.ra;*.mpg;*.mpeg;*.mpe;*.m1v;*.m2v;*.mpv2);;"));
 	szFilter.append(tr("*.mp2v;*.dat;*.mp4;*.m4v;*.m4p;*.vob;*.ac3;*.dts;*.mov;*.qt;*.mr;*.3gp;*.3gpp;*.3g2;*.3gp2;*.swf;*.ogg;*.wma;*.wav;;"));
 	szFilter.append(tr(".mid;*.midi;*.mpa;*.mp2;*.mp3;*.m1a;*.m2a;*.m4a;*.aac;*.mkv;*.ogm;*.m4b;*.tp;*.ts;*.tpr;*.pva;*.pss;*.wv;*.m2ts;*.evo;;"));
 	szFilter.append(tr("*.rpm;*.realpix;*.rt;*.smi;*.smil;*.scm;*.aif;*.aiff;*.aifc;*.amr;*.amv;*.au;*.acc;*.dsa;*.dsm;*.dsv;*.dss;*.pmp;*.smk;*.flic;;"));
@@ -199,9 +86,16 @@ void ffplay::OnBtnOpenFileClicked()
 	QByteArray ba = szFilePath.toLocal8Bit();
 	const char* filename = ba.data();
 
-	if (m_player.Start(filename)) {
-		ui.btnOpenFile->setVisible(false);
-	}
+	if (!m_player.SetWindow((const void*)ui.labelVideoView->winId(), ui.labelVideoView->width(), ui.labelVideoView->height()))
+		return;
+
+	if (!m_player.Open(filename))
+		return;
+
+	if (!m_player.Start())
+		return;
+	
+	ui.btnOpenFile->setVisible(false);	
 
 	/*if (!OpenFile(filename))
 		return;
