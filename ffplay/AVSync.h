@@ -1,62 +1,68 @@
 #pragma once
 #include "Common.h"
-#include <string>
 
 class AVSync
 {
 public:
-	AVSync()
-	{
-		audioClock = 0.0f;
-		lastVideoPts = 0.0f;
-		videoShowStartTime = 0.0f;
-	}
-
+	AVSync() :audio_clock(0.0f), last_video_pts(0.0f), video_show_start_time(0.0f) {}
 	~AVSync() {}
 
-	void SetAudioClock(double pts)
+	// 设定当前音频时钟
+	void SetAudioClock(double _pts)
 	{
-		audioClock = pts;
+		audio_clock = _pts;
 	}
 
+	// 获取本周期图像显示的起始时间
 	void SetVideoShowTime()
 	{
-		videoShowStartTime = av_gettime_relative() / AV_TIME_BASE * 1.0f;
+		video_show_start_time = av_gettime_relative() / AV_TIME_BASE * 1.0;
 	}
 
-	int64_t CalcDelay(double pts)
+	// 计算代表帧率控制的延迟(微秒)
+	int64_t CalDelay(double _pts)
 	{
-		int64_t i64Delay = 0;
-		double elapsedTime = 0.0f;
+		int64_t i64_delay = 0;
+		double elapsed_time = 0.0;
 
-		if (videoShowStartTime == 0.0f)
-			SetVideoShowTime();
+		if (video_show_start_time == 0.0)
+			SetVideoShowTime(); 
 
-		double diff = pts - audioClock;
-		double delay = pts - lastVideoPts;
-		int series = std::to_string(static_cast<int64_t>(diff*AV_TIME_BASE)).size();
-	
-		lastVideoPts = pts;
+		double diff = _pts - audio_clock;
+		double delay = _pts - last_video_pts;
+		int series = std::to_string(static_cast<int64_t>(diff * AV_TIME_BASE)).size();
 
-		if (diff> AVSYNC_DYNAMIC_THRESHOLD)
+		last_video_pts = _pts;
+
+		if (diff > AVSYNC_DYNAMIC_THRESHOLD)
+		{
 			diff = diff * (std::pow(1.0 + AVSYNC_DYNAMIC_COEFFICIENT, series) - 1.0);
-		else if (diff < - AVSYNC_DYNAMIC_THRESHOLD)
+		}
+		else if (diff < -AVSYNC_DYNAMIC_THRESHOLD)
+		{
 			diff = diff * (std::pow(1.0 + AVSYNC_DYNAMIC_COEFFICIENT, series) - 1.0);
+		}
 
-		if (delay > 0.0f && (delay + diff) > 0.0f)
+		if ((delay > 0.0) && ((delay + diff) > 0.0))
 		{
 			delay += diff;
-			elapsedTime = av_gettime_relative() / AV_TIME_BASE * 1.0 - videoShowStartTime;
-			i64Delay = static_cast<int64_t>((delay - elapsedTime) * AV_TIME_BASE);
+
+			elapsed_time = av_gettime_relative() / AV_TIME_BASE * 1.0 - video_show_start_time;
+
+			i64_delay = static_cast<int64_t>((delay - elapsed_time) * AV_TIME_BASE);
 		}
 		else
-			i64Delay = AVSYNC_SKIP_FRAME;
+		{
+			i64_delay = AVSYNC_SKIP_FRAME;
+		}
 
-		return i64Delay;
+		printf("%lf\t%lf\n", delay, diff);
+		return i64_delay;
 	}
 
 private:
-	volatile double audioClock;			// 音频时钟，主时钟
-	volatile double lastVideoPts;		// 上一帧的视频PTS
-	volatile double videoShowStartTime; // 视频帧显示周期的起始时间
+	volatile double audio_clock;			
+	volatile double last_video_pts;	
+	volatile double video_show_start_time;
 };
+

@@ -31,25 +31,11 @@ private:
     Ui::ffplayClass ui;
 	CPlayer m_player;
 
-	SDL_Window* m_pWindow = nullptr;
-	SDL_Renderer* m_pRender = nullptr;
-	SDL_Texture* m_pTexture = nullptr;
-	SDL_Rect m_rect;
-
-	AVFormatContext *m_pFormatCtx = nullptr;
-	AVCodecContext* m_pCodecCtx = nullptr;
-	AVCodec* m_pCodec = nullptr;
-	SwsContext* m_pSwsContext = nullptr;
-
-	AVFrame* m_pSrcFrame = nullptr;
-	AVFrame* m_pDstFrame = nullptr;
-	uint8_t* m_pDstBuffer = nullptr;
-	AVPacket* m_packet = nullptr;
 
 	int m_videoIndex = -1;
 	int m_audioIndex = -1;
 
 	bool m_bRun = false;
 
-	std::thread m_playThread;
+
 };

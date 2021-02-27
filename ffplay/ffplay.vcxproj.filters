@@ -41,10 +41,16 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="CPlayer.cpp">
+    <ClCompile Include="CAudioDecoder.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="CDemux.cpp">
+    <ClCompile Include="CDemultiplexer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CFrame.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CPlayer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="CVideoDecoder.cpp">
@@ -58,19 +64,22 @@
     <ClInclude Include="AVSync.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="CAudioDecoder.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CDemultiplexer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="CFrame.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="CPlayer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CDemux.h">
+    <ClInclude Include="CQueue.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="CVideoDecoder.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="SafeQueue.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

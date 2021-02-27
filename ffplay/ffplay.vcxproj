@@ -98,7 +98,9 @@
     <QtRcc Include="ffplay.qrc" />
     <QtUic Include="ffplay.ui" />
     <QtMoc Include="ffplay.h" />
-    <ClCompile Include="CDemux.cpp" />
+    <ClCompile Include="CAudioDecoder.cpp" />
+    <ClCompile Include="CDemultiplexer.cpp" />
+    <ClCompile Include="CFrame.cpp" />
     <ClCompile Include="CPlayer.cpp" />
     <ClCompile Include="CVideoDecoder.cpp" />
     <ClCompile Include="ffplay.cpp" />
@@ -106,12 +108,13 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AVSync.h" />
-    <ClInclude Include="CDemux.h" />
+    <ClInclude Include="CAudioDecoder.h" />
+    <ClInclude Include="CDemultiplexer.h" />
     <ClInclude Include="CFrame.h" />
     <ClInclude Include="Common.h" />
     <ClInclude Include="CPlayer.h" />
+    <ClInclude Include="CQueue.h" />
     <ClInclude Include="CVideoDecoder.h" />
-    <ClInclude Include="SafeQueue.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">

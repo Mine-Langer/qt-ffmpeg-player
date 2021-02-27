@@ -86,13 +86,9 @@ void ffplay::OnBtnOpenFileClicked()
 	QByteArray ba = szFilePath.toLocal8Bit();
 	const char* filename = ba.data();
 
-	if (!m_player.SetWindow((const void*)ui.labelVideoView->winId(), ui.labelVideoView->width(), ui.labelVideoView->height()))
-		return;
+	m_player.SetWndConfig((const void*)ui.labelVideoView->winId(), ui.labelVideoView->width(), ui.labelVideoView->height());
 
-	if (!m_player.Open(filename))
-		return;
-
-	if (!m_player.Start())
+	if (!m_player.Start(filename))
 		return;
 	
 	ui.btnOpenFile->setVisible(false);	
